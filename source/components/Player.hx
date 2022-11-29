@@ -1,12 +1,13 @@
 package components;
 
+import states.DefeatState;
 import states.PlayState;
 
 class Player extends BaseEnemy
 {
 	static final PLAYER_HEALTH:Float = 5.0;
 
-	static final PLAYER_HORIZONTAL_VELOCITY:Float = 200.0;
+	static final PLAYER_HORIZONTAL_VELOCITY:Float = 300.0;
 	static final PLAYER_VERTICAL_VELOCITY:Float = 200.0;
 
 	static final PLAYER_FIRE_RATE:Float = 0.2;
@@ -28,15 +29,15 @@ class Player extends BaseEnemy
 		#if debug
 		FlxG.watch.addQuick("Player posX", this.x);
 		FlxG.watch.addQuick("Player posY", this.y);
-		FlxG.watch.addQuick("Player velX", velocity.x);
-		FlxG.watch.addQuick("Player velY", velocity.y);
-		FlxG.watch.addQuick("Player fireTimer", fireTimer);
+		// FlxG.watch.addQuick("Player velX", velocity.x);
+		// FlxG.watch.addQuick("Player velY", velocity.y);
+		// FlxG.watch.addQuick("Player fireTimer", fireTimer);
 		FlxG.watch.addQuick("Player health", health);
 
-		FlxG.watch.addQuick("Button left", FlxG.keys.pressed.LEFT || FlxG.keys.pressed.A);
-		FlxG.watch.addQuick("Button right", FlxG.keys.pressed.RIGHT || FlxG.keys.pressed.D);
-		FlxG.watch.addQuick("Button up", FlxG.keys.pressed.UP || FlxG.keys.pressed.W);
-		FlxG.watch.addQuick("Button down", FlxG.keys.pressed.DOWN || FlxG.keys.pressed.S);
+		// FlxG.watch.addQuick("Button left", FlxG.keys.pressed.LEFT || FlxG.keys.pressed.A);
+		// FlxG.watch.addQuick("Button right", FlxG.keys.pressed.RIGHT || FlxG.keys.pressed.D);
+		// FlxG.watch.addQuick("Button up", FlxG.keys.pressed.UP || FlxG.keys.pressed.W);
+		// FlxG.watch.addQuick("Button down", FlxG.keys.pressed.DOWN || FlxG.keys.pressed.S);
 		#end
 	}
 
@@ -125,5 +126,16 @@ class Player extends BaseEnemy
 		{
 			fireTimer -= FlxG.elapsed;
 		}
+	}
+
+	public override function kill():Void
+	{
+		super.kill();
+
+		doExplosion(() ->
+		{
+			trace('You lost!');
+			FlxG.switchState(new DefeatState());
+		});
 	}
 }

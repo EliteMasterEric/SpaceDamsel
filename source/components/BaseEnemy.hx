@@ -3,6 +3,8 @@ package components;
 import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.system.FlxAssets.FlxGraphicAsset;
+import flixel.system.FlxSound;
+import states.MenuState;
 import states.PlayState;
 
 abstract class BaseEnemy extends FlxSprite
@@ -12,6 +14,8 @@ abstract class BaseEnemy extends FlxSprite
 	var invincibleTimer:Float = 0;
 
 	var worth:Int;
+
+	var bulletSpeed:Float = 300;
 
 	var friendly:Bool = false;
 
@@ -34,8 +38,8 @@ abstract class BaseEnemy extends FlxSprite
 		if (friendly)
 		{
 			// Handle friendly collision logic.
-			FlxG.collide(this, PlayState.instance.enemies, onCollideEnemy);
-			FlxG.collide(this, PlayState.instance.enemyBulletPool, onCollideBullet);
+			FlxG.overlap(this, PlayState.instance.enemies, onCollideEnemy);
+			FlxG.overlap(this, PlayState.instance.enemyBulletPool, onCollideBullet);
 		}
 		else
 		{
@@ -96,15 +100,14 @@ abstract class BaseEnemy extends FlxSprite
 	public override function kill()
 	{
 		super.kill();
-		if (friendly)
+
+		if (!friendly)
 		{
-			FlxG.log.notice('You lost!');
-			FlxG.resetState();
-		}
-		else
-		{
-			FlxG.log.notice('You beat an enemy!');
-			PlayState.instance.score += this.worth;
+			PlayState.instance.score += worth;
+			doExplosion(() ->
+			{
+				trace('You beat an enemy!');
+			});
 		}
 	}
 
@@ -132,15 +135,40 @@ abstract class BaseEnemy extends FlxSprite
 		}
 	}
 
-	function fireBullet():Void
+	function fireBullet(?forceStraight:Bool = true, ?bigSound:Bool = false):Bullet
 	{
+		// Play the sound effect.
+		FlxG.sound.play(bigSound ? AssetPaths.laser_big__ogg : AssetPaths.laser_small__ogg, 1.0);
+
 		// Bullet spawn location is top center of player.
 		// Bullet is friendly.
 		var bulletX = this.x + this.width / 2;
-		var bulletY = this.friendly ? this.y : this.y + this.height;
-		PlayState.instance.spawnBullet(bulletX, bulletY, this.friendly);
+		var bulletY = this.friendly ? this.y - 8 : this.y + this.height + 8;
+		var bullet = PlayState.instance.spawnBullet(bulletX, bulletY, this.friendly, bulletSpeed);
 
-		// Play the sound effect.
-		FlxG.sound.play("assets/sounds/laser-small.mp3", 0.5);
+		if (forceStraight)
+			bullet.maxVelocity.x = 0;
+
+		return bullet;
+	}
+
+	function doExplosion(onComplete:Void->Void)
+	{
+		var explosion:FlxSprite = new FlxSprite(0, 0).loadGraphic(AssetPaths.explosion__png);
+		explosion.setGraphicSize(Std.int(this.width), Std.int(this.height));
+		explosion.updateHitbox();
+		// set position AFTER setting graphic size.
+		explosion.x = this.x;
+		explosion.y = this.y;
+
+		PlayState.instance.add(explosion);
+
+		// Play the sound
+		var sound:FlxSound = FlxG.sound.play(AssetPaths.boom__ogg, 1.0);
+		sound.onComplete = () ->
+		{
+			explosion.kill();
+			onComplete();
+		};
 	}
 }

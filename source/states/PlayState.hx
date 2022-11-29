@@ -3,7 +3,9 @@ package states;
 import components.BaseEnemy;
 import components.Bee;
 import components.Bullet;
+import components.Hornet;
 import components.Player;
+import components.Queen;
 import flixel.addons.display.FlxBackdrop;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup;
@@ -20,6 +22,8 @@ class PlayState extends FlxState
 	// Gameplay state
 	public var score:Int = 0;
 
+	public var timer:Float = 300.0;
+
 	var scoreLerp:Int = 0;
 
 	public var player:Player;
@@ -33,6 +37,7 @@ class PlayState extends FlxState
 	var spaceBG:FlxBackdrop;
 	var scoreText:FlxText;
 	var healthText:FlxText;
+	var timerText:FlxText;
 
 	public function new()
 	{
@@ -45,7 +50,15 @@ class PlayState extends FlxState
 		super.create();
 
 		// Play the music
-		FlxG.sound.playMusic(AssetPaths.voxel_revolution__mp3, 1.0);
+		if (FlxG.sound.music != null)
+			FlxG.sound.music.stop();
+		switch (Persistent.currentLevel)
+		{
+			case 3:
+				FlxG.sound.playMusic(AssetPaths.raving_energy__ogg, 0.7);
+			default:
+				FlxG.sound.playMusic(AssetPaths.voxel_revolution__ogg, 0.7);
+		}
 
 		// Create the background
 		spaceBG = new FlxBackdrop(AssetPaths.space__png);
@@ -82,17 +95,28 @@ class PlayState extends FlxState
 		// Move the text to the bottom right of the screen
 		healthText.y = FlxG.height - healthText.height;
 		add(healthText);
+
+		// Build the timer text
+		timerText = new FlxText(0, 0, FlxG.width, "TIME: 300");
+		timerText.setFormat(null, 16, 0xFFFFFFFF, "center");
+		// Move the text to the bottom center of the screen
+		timerText.y = FlxG.height - timerText.height;
+		add(timerText);
 	}
 
 	public override function update(elapsed:Float)
 	{
 		super.update(elapsed);
 
-		if (FlxG.keys.justPressed.R)
-		{
-			FlxG.resetState();
-		}
+		timer -= elapsed;
 
+		handleKeybinds();
+		handleStatus(elapsed);
+		handleProgress();
+	}
+
+	function handleStatus(elapsed:Float)
+	{
 		// Update the score text
 		scoreLerp = Math.ceil(FlxMath.lerp(scoreLerp, score, elapsed * SCORE_LERP_SPEED));
 		scoreText.text = 'SCORE: $scoreLerp';
@@ -101,31 +125,84 @@ class PlayState extends FlxState
 		healthText.text = 'HEALTH: ${player.health}';
 		// Sneaky way to flash the health text when the player is hit
 		healthText.alpha = player.alpha;
+
+		// Update the timer text
+		timerText.text = 'TIME: ${Math.ceil(timer)}';
 	}
 
+	function handleKeybinds()
+	{
+		if (FlxG.keys.justPressed.R)
+		{
+			FlxG.resetState();
+		}
+		if (FlxG.keys.justPressed.P)
+		{
+			openSubState(new PauseSubState());
+		}
+
+		// Player keybinds are handled in the Player class.
+	}
+
+	var finishTimer:Float = 0.0;
+
+	function handleProgress()
+	{
+		if (score > 0 && enemies.countLiving() == 0)
+		{
+			// We've killed all the enemies, so the level is over.
+			finishTimer += FlxG.elapsed;
+		}
+
+		if (finishTimer > 2.0)
+		{
+			// The level is over, so go to the results screen
+			FlxG.switchState(new ResultsState(score, Math.ceil(timer)));
+		}
+	}
+
+	/**
+	 * Spawn enemies in the level based on the level data array.
+	 */
 	function spawnEnemies()
 	{
 		enemies = new FlxTypedGroup<BaseEnemy>();
 		add(enemies);
 
-		var enemy:BaseEnemy;
-		var enemyCount:Int = 5;
-		var enemySpacing:Float = FlxG.width / enemyCount;
-		var enemyX:Float = enemySpacing / 2;
-		var enemyY:Float = 0;
+		var enemyData = Persistent.LEVEL_DATA[Persistent.currentLevel];
 
-		for (i in 0...enemyCount)
+		for (enemyDataItem in enemyData)
 		{
-			enemy = new Bee();
-			enemy.x = enemyX;
-			enemy.y = enemyY;
-			enemies.add(enemy);
+			var enemy:BaseEnemy;
+			switch (enemyDataItem.type)
+			{
+				case 'Bee':
+					enemy = new Bee();
+					enemy.x = enemyDataItem.x;
+					enemy.y = enemyDataItem.y;
+				case 'Hornet':
+					var hornetEnemy = new Hornet();
+					hornetEnemy.startingPosition.x = enemyDataItem.x;
+					hornetEnemy.startingPosition.y = enemyDataItem.y;
+					enemy = hornetEnemy;
+					enemy.x = enemyDataItem.x;
+					enemy.y = enemyDataItem.y;
+				case 'Queen':
+					enemy = new Queen();
+					enemy.x = enemyDataItem.x;
+					enemy.y = enemyDataItem.y;
+				default:
+					throw 'Unknown enemy type: ${enemyDataItem.type}';
+			}
 
-			enemyX += enemySpacing;
+			enemy.x -= enemy.width / 2;
+			// enemy.y -= enemy.height / 2;
+
+			enemies.add(enemy);
 		}
 	}
 
-	public function spawnBullet(xPos:Float, yPos:Float, friendly:Bool)
+	public function spawnBullet(xPos:Float, yPos:Float, friendly:Bool, bulletSpeed:Float)
 	{
 		if (friendly)
 		{
@@ -133,7 +210,9 @@ class PlayState extends FlxState
 			bullet.friendly = friendly;
 			bullet.x = xPos;
 			bullet.y = yPos;
+			bullet.bulletSpeed = bulletSpeed;
 			friendlyBulletPool.add(bullet);
+			return bullet;
 		}
 		else
 		{
@@ -141,7 +220,9 @@ class PlayState extends FlxState
 			bullet.friendly = friendly;
 			bullet.x = xPos;
 			bullet.y = yPos;
+			bullet.bulletSpeed = bulletSpeed;
 			enemyBulletPool.add(bullet);
+			return bullet;
 		}
 	}
 

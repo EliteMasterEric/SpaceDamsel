@@ -4,7 +4,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://lime.software/project/1.0.2 http://lime.software/xsd/project-1.0.2.xsd">
 
-	<app title="3StarGameJam" file="FlxProject" main="Main" version="0.0.1" company="HaxeFlixel" />
+	<app title="SpaceDamsel" file="SpaceDamsel" main="Main" version="0.0.1" company="EliteMasterEric" />
 
 	<app preloader="flixel.system.FlxPreloader" />
 
@@ -23,6 +23,7 @@
 	<haxelib name="flixel-addons" />
 	<!-- for flixel console -->
 	<haxelib name="hscript" />
+	<haxelib name="newgrounds" />
 
 	<!--Optimise inputs, be careful you will get null errors if you don't use conditionals in your game-->
 	<haxedef name="FLX_NO_MOUSE" if="mobile" />

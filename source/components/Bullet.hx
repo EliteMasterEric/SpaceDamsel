@@ -4,9 +4,9 @@ import states.PlayState;
 
 class Bullet extends FlxSprite
 {
-	static final BULLET_VELOCITY:Float = 600;
-
 	public var friendly(default, set):Bool;
+
+	public var bulletSpeed(default, set):Float;
 
 	function set_friendly(value:Bool):Bool
 	{
@@ -16,6 +16,15 @@ class Bullet extends FlxSprite
 		setBulletSpeed();
 
 		return friendly;
+	}
+
+	function set_bulletSpeed(value:Float):Float
+	{
+		bulletSpeed = value;
+
+		setBulletSpeed();
+
+		return bulletSpeed;
 	}
 
 	public function new()
@@ -43,11 +52,13 @@ class Bullet extends FlxSprite
 		// Make the bullet move in the correct direction.
 		if (friendly)
 		{
-			velocity.y = -BULLET_VELOCITY;
+			velocity.y = -bulletSpeed;
+			velocity.x = 0;
 		}
 		else
 		{
-			velocity.y = BULLET_VELOCITY;
+			velocity.y = bulletSpeed;
+			velocity.x = 0;
 		}
 	}
 
@@ -59,6 +70,18 @@ class Bullet extends FlxSprite
 		if (x < 0 || x > FlxG.width)
 		{
 			kill();
+		}
+
+		if (maxVelocity.x <= 0 && velocity.x != 0)
+		{
+			// Fix the bullet's speed if it's moving the wrong way.
+			setBulletSpeed();
+		}
+
+		if (maxVelocity.y <= 0 && velocity.y != 0)
+		{
+			// Fix the bullet's speed if it's moving the wrong way.
+			setBulletSpeed();
 		}
 	}
 }

@@ -22,15 +22,15 @@ class Bee extends BaseEnemy
 
 	public override function update(elapsed:Float)
 	{
-		super.update(elapsed);
-
 		shootTimer -= elapsed;
 
 		if (shootTimer <= 0)
 		{
-			fireBullet();
+			fireBullet(true);
 			incrementShootTimer();
 		}
+
+		super.update(elapsed);
 	}
 
 	function incrementShootTimer()
