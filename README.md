@@ -1,8 +1,20 @@
-# Space Attack
+# Space Damsel
 
-Save your space girlfriend from space pirates. Why are their ships shaped like bees? Who knows.
+Oh no! The evil Space Pirate Queen has kidnapped your girlfriend! Go, Space Damsel, and engage her fleet to rescue her!
 
-Literally just the most generic space arcade shooter ever lol
+Created with HaxeFlixel in 3 days for [3-Star Game Jam 2022](https://ninjamuffin99.newgrounds.com/news/post/1320930).
+
+**CONTROLS**
+- WASD/Arrows to move
+- Space to Fire/Confirm
+- R to restart level
+- P to pause
+
+## Play in your Browser
+
+**[Play Space Damsel on Newgrounds](https://www.newgrounds.com/portal/view/865326)**
+
+*[Mirror: Play Space Damsel on GitHub Pages](https://mastereric.github.io/spacedamsel/)*
 
 ## Build Instructions
 
@@ -10,33 +22,6 @@ Literally just the most generic space arcade shooter ever lol
 2. `haxelib install hmm`
 3. `hmm install`
 4. `lime test linux -debug` or replace `linux` with `html5` or `windows` or whatever your target platform
-
-## Feature Checklist
-[X] Movement controls
-[X] Firing controls
-[X] Enemies and collision
-[X] Points on kill
-[X] Main menu
-    [X] Credits screen
-[X] Intro scroll
-[X] Pause screen
-[X] Timer
-[X] Results screens 
-    [X] (saving destroy points + time bonus)
-    [X] Display separate plus total, with lerping and sfx
-    [X] Level-specific text
-[X] Logic for separate levels
-[X] High score saving
-[X] High score display
-[] Victory scroll
-[] Separate enemy layouts for levels
-[] Separate AIs for different enemy types
-- Stretch goals
-[] Change character fonts
-[] Explode animation on death
-[] Newgrounds score reporting
-[] Newgrounds awards
-[] Final battle cutscene
 
 ## Licensing
 
